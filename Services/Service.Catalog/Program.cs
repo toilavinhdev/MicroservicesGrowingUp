@@ -8,7 +8,11 @@ var services = builder.Services;
 services.AddEndpointsApiExplorer().AddSwaggerGen();
 
 var app = builder.Build();
-app.UseSwagger().UseSwaggerUI();
+app.UseSwagger()
+   .UseSwaggerUI(options =>
+   { 
+       options.DocumentTitle = "Service.Catalog";
+   });;
 app.Map("/", () => "Service.Catalog");
 
 var client = new MongoClient("mongodb://localhost:27017");
