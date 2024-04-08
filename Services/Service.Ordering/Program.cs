@@ -32,10 +32,12 @@ app.UseSwagger()
    });
 app.Map("/", () => "Service.Ordering");
 
-app.MapGet("/list",
+var group = app.MapGroup("/ordering/api");
+
+group.MapGet("/list",
     async (DataContext context) => await context.Orders.ToListAsync());
 
-app.MapGet("/{userName}", async (string userName, DataContext context) =>
+group.MapGet("/{userName}", async (string userName, DataContext context) =>
     {
         var order = await context.Orders.FirstOrDefaultAsync(x => x.UserName.Equals(userName));
         return order is null 

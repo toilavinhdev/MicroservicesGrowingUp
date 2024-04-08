@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Service.Discount;
 
-public class DiscountService(DataContext dataContext) : DiscountProtoService.DiscountProtoServiceBase
+public class DiscountService(DataContext dataContext, ILogger<DiscountService> logger) : DiscountProtoService.DiscountProtoServiceBase
 {
     public override async Task<CouponModel> GetDiscount(GetDiscountRequest request, ServerCallContext context)
     {
+        logger.LogInformation("Discount grpc is calling");
+        
         var coupon = await dataContext.Coupons
             .FirstOrDefaultAsync(x => x.ProductName.Equals(request.ProductName));
 

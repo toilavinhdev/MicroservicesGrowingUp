@@ -34,7 +34,9 @@ app.UseSwagger()
    });
 app.Map("/", () => "Service.Basket");
 
-app.MapGet("/{userName}", 
+var group = app.MapGroup("/basket/api");
+
+group.MapGet("/{userName}", 
     async (string userName, [FromServices]IDistributedCache redisCache) =>
     {
         var cart = await redisCache.GetStringAsync(userName);
@@ -43,7 +45,7 @@ app.MapGet("/{userName}",
             : Results.Ok(JsonConvert.DeserializeObject<Cart>(cart));
     });
 
-app.MapPost("/create", 
+group.MapPost("/create", 
     async (
         [FromBody]Cart cart, 
         [FromServices]IDistributedCache redisCache, [FromServices]DiscountProtoService.DiscountProtoServiceClient discountProtoServiceClient) =>
@@ -57,13 +59,13 @@ app.MapPost("/create",
         return cart;
     });
 
-app.MapDelete("/delete", 
+group.MapDelete("/delete", 
     async (string userName, [FromServices]IDistributedCache redisCache) =>
     {
         await redisCache.RemoveAsync(userName);
     });
 
-app.MapPost("/checkout",
+group.MapPost("/checkout",
     async (
         string userName,
         [FromServices]IDistributedCache redisCache, [FromServices]IPublishEndpoint publishEndpoint) =>
