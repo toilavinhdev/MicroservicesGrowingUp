@@ -15,6 +15,8 @@
 
     <ItemGroup>
       <PackageReference Include="Grpc.AspNetCore" Version="2.62.0" />
+      <PackageReference Include="MassTransit" Version="8.2.0" />
+      <PackageReference Include="MassTransit.RabbitMQ" Version="8.2.0" />
       <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.3" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
@@ -22,6 +24,10 @@
     
     <ItemGroup>
         <Protobuf Include="../Service.Discount/discount.proto" GrpcServices="Client" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\..\BuildingBlocks\BuildingBlock.Messaging\BuildingBlock.Messaging.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,4 +1,6 @@
+using BuildingBlock.Messaging;
 using Discount.Grpc;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
@@ -15,6 +17,13 @@ services.AddStackExchangeRedisCache(options =>
 services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(options =>
 {
     options.Address = new Uri("http://localhost:5002"); //Discount.Grpc
+});
+services.AddMassTransit(registrationConfig =>
+{
+    registrationConfig.UsingRabbitMq((ctx, factoryConfig) =>
+    {
+        factoryConfig.Host("amqp://guest:guest@localhost:5672");
+    });
 });
 
 var app = builder.Build();
@@ -52,6 +61,28 @@ app.MapDelete("/delete",
     async (string userName, [FromServices]IDistributedCache redisCache) =>
     {
         await redisCache.RemoveAsync(userName);
+    });
+
+app.MapPost("/checkout",
+    async (
+        string userName,
+        [FromServices]IDistributedCache redisCache, [FromServices]IPublishEndpoint publishEndpoint) =>
+    {
+        var cartValue = await redisCache.GetStringAsync(userName);
+        if (cartValue is null) return Results.BadRequest("Cart was not existed");
+        var cart = JsonConvert.DeserializeObject<Cart>(cartValue);
+        if (cart is null) throw new NullReferenceException("Cart was not nullable");
+
+        await publishEndpoint.Publish(
+            new BasketCheckoutEvent
+            {
+                UserName = cart.UserName,
+                TotalPrice = cart.Items.Aggregate((decimal)0, (acc, cur) => acc + (cur.Price * cur.Quantity))
+            });
+
+        await redisCache.RemoveAsync(userName);
+
+        return Results.Ok("Checkout successfully");
     });
 
 app.Run();
